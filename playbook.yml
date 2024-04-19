@@ -1,6 +1,6 @@
 ---
 - name: Deploy Terraform
-  hosts: 51.20.52.140
+  hosts: awshost
   remote_user: ec2-user
 
   tasks:
