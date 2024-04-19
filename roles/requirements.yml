@@ -1,1 +1,2 @@
-- name: community.general.terraform
+collections:
+  - name: community.general.terraform
