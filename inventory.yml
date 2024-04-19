@@ -1,4 +1,4 @@
-awshost:
+all:
   hosts:
-    aws01:
+    awshost:
       ansible_host: 51.20.52.140
