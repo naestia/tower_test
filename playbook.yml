@@ -1,7 +1,7 @@
 ---
 - name: Deploy Terraform
   hosts: 51.20.52.140
-  remote_user: root
+  remote_user: ec2-user
 
   tasks:
     - name: Print the gateway for each host when defined
