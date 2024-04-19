@@ -3,7 +3,8 @@
   hosts: localhost
   remote_user: root
 
-- name: Basic deploy of a service
-  community.general.terraform:
-    project_path: './'
-    state: present
+  tasks:
+    - name: Basic deploy of a service
+      community.general.terraform:
+        project_path: './'
+        state: present
