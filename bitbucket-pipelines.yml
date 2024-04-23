@@ -14,6 +14,7 @@ pipelines:
   default:
     - parallel:
         - step:
+            oidc: true 
             name: Test
             script:
               - terraform init
