@@ -13,6 +13,7 @@ image: hashicorp/terraform
 pipelines:
   default:
       - step:
+          oidc: true
           name: Terraform init and validate
           script:
             - mkdir web-identity
