@@ -37,6 +37,8 @@ pipelines:
             deployment: Production
             trigger: manual
             script:
+              - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity-token
+              - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity-token
               - terraform init
               - terraform plan
               - terraform apply -auto-approve
