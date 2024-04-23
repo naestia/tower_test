@@ -28,7 +28,7 @@ pipelines:
           oidc: true
           name: Deploy artifact to S3
           script:
-            - pipe: atlassian/aws-s3-deploy:0.3.8
+            - pipe: atlassian/aws-s3-deploy:1.6.0
               variables:
                 AWS_DEFAULT_REGION: $AWS_REGION
                 AWS_OIDC_ROLE_ARN: $AWS_ROLE_ARN
