@@ -26,7 +26,20 @@ pipelines:
             - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
             - terraform init
             - terraform validate
-      
+            - terraform plan -out=artifacts/$BITBUCKET_COMMIT-tfplan
+          artifacts:
+            - artifacts/*
+      - step:
+          oidc: true
+          name: Deploy artifact to S3
+          script:
+            - pipe: atlassian/aws-s3-deploy:0.3.8
+              variables:
+                AWS_DEFAULT_REGION: $AWS_REGION
+                AWS_OIDC_ROLE_ARN: $AWS_ROLE_ARN
+                S3_BUCKET: 'tower-test-tf-backend/tfplans'
+                LOCAL_PATH: 'artifacts'
+        
   branches:
     main:
         - step:
@@ -45,7 +58,6 @@ pipelines:
               - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
               - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
               - terraform init
-              - terraform plan
               - terraform apply -auto-approve
 
 
