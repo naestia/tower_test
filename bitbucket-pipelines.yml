@@ -14,9 +14,12 @@ pipelines:
   default:
     - parallel:
         - step:
-            oidc: true 
+            oidc: true
             name: Test
             script:
+              - mkdir web-identity
+              - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
+              - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
               - terraform init
               - terraform validate
         - step:
