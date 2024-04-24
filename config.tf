@@ -15,15 +15,9 @@ terraform {
 
 provider "aws" {
   region  = "eu-north-1"
-  profile = "ductus"
+  assume_role_with_web_identity {
+    role_arn = var.oidc_role_arn
+    session_name = "Name"
+    web_identity_token_file = "./${var.web_identity_token_directory}/web-identity-token"
+  }
 }
-
-# provider "aws" {
-#   region  = "eu-north-1"
-#   profile = "ductus"
-#   assume_role_with_web_identity {
-#     role_arn = var.oidc_role_arn
-#     session_name = "Name"
-#     web_identity_token_file = "./${var.web_identity_token_directory}/web-identity-token"
-#   }
-# }
