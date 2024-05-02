@@ -8,8 +8,6 @@ pipelines:
             - step:
                 oidc: true
                 name: Plan QA
-                variables:
-                  TF_VAR_role_arn: $QA_ROLE_ARN
                 condition:
                   changesets:
                     includePaths:
@@ -17,7 +15,7 @@ pipelines:
                 script:
                     - ls -al
                     - sh ./scripts/initialize-oidc.sh
-                    - echo $QA_ROLE_ARN
+                    - export TF_VAR_role_arn=$QA_ROLE_ARN
                     - ls -al
                     - cd qa
                     - terraform init
@@ -35,7 +33,7 @@ pipelines:
                       - "stage/**"
                 script:
                     - ./scripts/initialize-oidc.sh
-                    - echo $TF_VAR_role_arn
+                    - export TF_VAR_role_arn=$STAGE_ROLE_ARN
                     - cd stage
                     - terraform init
                     - terraform validate
@@ -52,7 +50,7 @@ pipelines:
                       - "prod/**"
                 script:
                   - ./scripts/initialize-oidc.sh
-                  - echo $TF_VAR_role_arn
+                  - export TF_VAR_role_arn=$PROD_ROLE_ARN
                   - cd prod
                   - terraform init
                   - terraform validate
