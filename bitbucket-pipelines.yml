@@ -15,7 +15,8 @@ pipelines:
                     includePaths:
                       - "qa/**"
                 script:
-                    - ./scripts/initialize-oidc.sh
+                    - ls -al
+                    - sh ./scripts/initialize-oidc.sh
                     - echo $TF_VAR_role_arn
                     - ls -al
                     - cd qa
