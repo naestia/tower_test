@@ -2,6 +2,7 @@ image: hashicorp/terraform
 
 pipelines:
   pull-requests:
+    '**':
     - step:
       name: Set Variables and OIDC
       condition:
@@ -28,7 +29,7 @@ pipelines:
               - terraform init
               - terraform validate
               - terraform plan -out=artifacts/$BITBUCKET_COMMIT-qa-tfplan
-              
+
         - step:
           oidc: true
           name: Plan Stage
@@ -57,17 +58,6 @@ pipelines:
               - terraform init
               - terraform validate
               - terraform plan -out=artifacts/$BITBUCKET_COMMIT-prod-tfplan
-            
-        # - step:
-        #     oidc: true
-        #     name: Deploy artifact to S3
-        #     script:
-        #       - pipe: atlassian/aws-s3-deploy:1.6.0
-        #         variables:
-        #           AWS_DEFAULT_REGION: $AWS_REGION
-        #           AWS_OIDC_ROLE_ARN: $AWS_ROLE_ARN
-        #           S3_BUCKET: 'tower-test-tf-backend/tfplans'
-        #           LOCAL_PATH: 'artifacts'
     - parallel:
       steps:
         - step:
