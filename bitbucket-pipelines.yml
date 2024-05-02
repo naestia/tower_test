@@ -2,7 +2,7 @@ image: hashicorp/terraform
 
 pipelines:
   pull-requests:
-    '**':
+    test:
     - step:
       name: Set Variables and OIDC
       condition:
