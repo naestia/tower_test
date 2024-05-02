@@ -21,7 +21,7 @@ pipelines:
                 oidc: true
                 name: Plan QA
                 variables:
-                      TF_VAR_role_arn: $QA_ROLE_ARN
+                  TF_VAR_role_arn: $QA_ROLE_ARN
                 condition:
                   changesets:
                     includePaths:
@@ -37,7 +37,7 @@ pipelines:
                 oidc: true
                 name: Plan Stage
                 variables:
-                      TF_VAR_role_arn: $STAGE_ROLE_ARN
+                  TF_VAR_role_arn: $STAGE_ROLE_ARN
                 condition:
                   changesets:
                     includePaths:
@@ -53,7 +53,7 @@ pipelines:
                 oidc: true
                 name: Plan Prod
                 variables:
-                    TF_VAR_role_arn: $PROD_ROLE_ARN
+                  TF_VAR_role_arn: $PROD_ROLE_ARN
                 condition:
                   changesets:
                     includePaths:
