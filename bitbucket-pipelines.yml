@@ -28,6 +28,7 @@ pipelines:
                       - "qa/**"
                 script:
                     - echo $TF_VAR_role_arn
+                    - ls -al
                     - cd qa
                     - terraform init
                     - terraform validate
