@@ -18,7 +18,7 @@ variable "team" {
   type        = string
 }
 
-variable "oidc_role_arn" {
+variable "role_arn" {
   type = string
   description = "OpenID Connect role ARN to use when deploying to AWS"
 }
