@@ -17,7 +17,7 @@ pipelines:
                 script:
                     - ls -al
                     - sh ./scripts/initialize-oidc.sh
-                    - echo $TF_VAR_role_arn
+                    - echo $QA_ROLE_ARN
                     - ls -al
                     - cd qa
                     - terraform init
