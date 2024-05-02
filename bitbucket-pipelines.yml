@@ -1,39 +1,90 @@
-# Template Terraform to deploy to Cloud Infrastructure
-
-# This template allows you to deploy your infrastructure using Terraform to supported cloud providers.
-# The workflow allows running tests, security scans on feature branches (as well as master).
-# After merging code to master the infrastructure will be deployed to cloud according to the given terraform template.
-
-# Prerequisites: credentials according to used cloud provider.
-# For advanced cases, please, follow terraform docs https://www.terraform.io/docs/index.html.
-
-
 image: hashicorp/terraform
 
 pipelines:
-  default:
+  pull-requests:
+    - step:
+      name: Set Variables and OIDC
+      script:
+        - mkdir web-identity && mkdir artifacts
+        - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
+        - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
+    - parallel:
       - step:
-          oidc: true
-          name: Terraform init and validate
-          script:
-            - mkdir web-identity && mkdir artifacts
-            - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
-            - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
+        oidc: true
+        name: Plan QA
+        variables:
+              TF_VAR_role_arn: $QA_ROLE_ARN
+        condition:
+          includePaths:
+            - "./qa/**"
+        script:
+            - echo $TF_VAR_role_arn
             - terraform init
             - terraform validate
             - terraform plan -out=artifacts/$BITBUCKET_COMMIT-tfplan
+          - pipe: atlassian/aws-s3-deploy:1.6.0
+            variables:
+              AWS_DEFAULT_REGION: $AWS_REGION
+              AWS_OIDC_ROLE_ARN: $QA_ROLE_ARN
+              S3_BUCKET: 'tower-test-tf-backend/tfplans'
+              LOCAL_PATH: 'artifacts'
           artifacts:
             - artifacts/*
+
+      - step:
+        oidc: true
+        name: Plan Stage
+        variables:
+              TF_VAR_role_arn: $STAGE_ROLE_ARN
+        condition:
+          includePaths:
+            - "./stage/**"
+        script:
+            - echo $TF_VAR_role_arn
+            - terraform init
+            - terraform validate
+            - terraform plan -out=artifacts/$BITBUCKET_COMMIT-tfplan
+          - pipe: atlassian/aws-s3-deploy:1.6.0
+            variables:
+              AWS_DEFAULT_REGION: $AWS_REGION
+              AWS_OIDC_ROLE_ARN: $STAGE_ROLE_ARN
+              S3_BUCKET: 'tower-test-tf-backend/tfplans'
+              LOCAL_PATH: 'artifacts'
+          artifacts:
+            - artifacts/*
+
       - step:
           oidc: true
-          name: Deploy artifact to S3
+          name: Plan Prod
+          variables:
+              TF_VAR_role_arn: $PROD_ROLE_ARN
+          condition:
+            changeset:
+              includePaths:
+                - "./prod/**"
           script:
-            - pipe: atlassian/aws-s3-deploy:1.6.0
-              variables:
-                AWS_DEFAULT_REGION: $AWS_REGION
-                AWS_OIDC_ROLE_ARN: $AWS_ROLE_ARN
-                S3_BUCKET: 'tower-test-tf-backend/tfplans'
-                LOCAL_PATH: 'artifacts'
+            - echo $TF_VAR_role_arn
+            - terraform init
+            - terraform validate
+            - terraform plan -out=artifacts/$BITBUCKET_COMMIT-tfplan
+          - pipe: atlassian/aws-s3-deploy:1.6.0
+            variables:
+              AWS_DEFAULT_REGION: $AWS_REGION
+              AWS_OIDC_ROLE_ARN: $PROD_ROLE_ARN
+              S3_BUCKET: 'tower-test-tf-backend/tfplans'
+              LOCAL_PATH: 'artifacts'
+          artifacts:
+            - artifacts/*
+      # - step:
+      #     oidc: true
+      #     name: Deploy artifact to S3
+      #     script:
+      #       - pipe: atlassian/aws-s3-deploy:1.6.0
+      #         variables:
+      #           AWS_DEFAULT_REGION: $AWS_REGION
+      #           AWS_OIDC_ROLE_ARN: $AWS_ROLE_ARN
+      #           S3_BUCKET: 'tower-test-tf-backend/tfplans'
+      #           LOCAL_PATH: 'artifacts'
         
   branches:
     master:
@@ -45,14 +96,50 @@ pipelines:
               - pipe: atlassian/git-secrets-scan:0.5.1        
         - step:
             oidc: true
+            name: Deploy to QA
+            variables:
+              TF_VAR_role_arn: $QA_ROLE_ARN
+            deployment: QA
+            trigger: manual
+            script:
+              - mkdir web-identity
+              - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
+              - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
+              - cd qa
+              - terraform init
+              - echo "TF APPLY"
+              # - terraform apply -auto-approve
+
+        - step:
+            oidc: true
+            name: Deploy to Stage
+            variables:
+              TF_VAR_role_arn: $STAGE_ROLE_ARN
+            deployment: Stage
+            trigger: manual
+            script:
+              - mkdir web-identity
+              - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
+              - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
+              - cd stage
+              - terraform init
+              - echo "TF APPLY"
+              # - terraform apply -auto-approve
+
+        - step:
+            oidc: true
             name: Deploy to Production
+            variables:
+              TF_VAR_role_arn: $PROD_ROLE_ARN
             deployment: Production
             trigger: manual
             script:
               - mkdir web-identity
               - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
               - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
+              - cd prod
               - terraform init
-              - terraform apply -auto-approve
+              - echo "TF APPLY"
+              # - terraform apply -auto-approve
 
 
