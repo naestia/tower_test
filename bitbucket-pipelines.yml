@@ -28,9 +28,10 @@ pipelines:
                       - "qa/**"
                 script:
                     - echo $TF_VAR_role_arn
+                    - cd qa
                     - terraform init
                     - terraform validate
-                    - terraform plan -out=artifacts/$BITBUCKET_COMMIT-qa-tfplan
+                    - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-qa-tfplan
 
             - step:
                 oidc: true
@@ -43,9 +44,10 @@ pipelines:
                       - "stage/**"
                 script:
                     - echo $TF_VAR_role_arn
+                    - cd stage
                     - terraform init
                     - terraform validate
-                    - terraform plan -out=artifacts/$BITBUCKET_COMMIT-stage-tfplan
+                    - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-stage-tfplan
 
             - step:
                 oidc: true
@@ -58,9 +60,10 @@ pipelines:
                       - "prod/**"
                 script:
                   - echo $TF_VAR_role_arn
+                  - cd prod
                   - terraform init
                   - terraform validate
-                  - terraform plan -out=artifacts/$BITBUCKET_COMMIT-prod-tfplan
+                  - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-prod-tfplan
       - parallel:
           steps:
             - step:
