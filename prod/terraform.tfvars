@@ -1,6 +1,5 @@
 aws_account = "ductus"
 region = "eu-north-1"
 env_name = "prod"
-team = "Null"
-prod_role_arn = "g"
+team = "Nulddl"
 web_identity_token_directory = "web-identity"
