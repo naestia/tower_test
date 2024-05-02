@@ -6,10 +6,11 @@ pipelines:
       - step:
           name: Set Variables and OIDC
           condition:
-            includePaths:
-              - "./qa/**"
-              - "./stage/**"
-              - "./prod/**"
+            changesets:
+              includePaths:
+                - "./qa/**"
+                - "./stage/**"
+                - "./prod/**"
           script:
             - mkdir web-identity && mkdir artifacts
             - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
@@ -22,8 +23,9 @@ pipelines:
                 variables:
                       TF_VAR_role_arn: $QA_ROLE_ARN
                 condition:
-                  includePaths:
-                    - "./qa/**"
+                  changesets:
+                    includePaths:
+                      - "./qa/**"
                 script:
                     - echo $TF_VAR_role_arn
                     - terraform init
@@ -36,8 +38,9 @@ pipelines:
                 variables:
                       TF_VAR_role_arn: $STAGE_ROLE_ARN
                 condition:
-                  includePaths:
-                    - "./stage/**"
+                  changesets:
+                    includePaths:
+                      - "./stage/**"
                 script:
                     - echo $TF_VAR_role_arn
                     - terraform init
@@ -50,7 +53,7 @@ pipelines:
                 variables:
                     TF_VAR_role_arn: $PROD_ROLE_ARN
                 condition:
-                  changeset:
+                  changesets:
                     includePaths:
                       - "./prod/**"
                 script:
