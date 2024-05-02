@@ -3,115 +3,103 @@ image: hashicorp/terraform
 pipelines:
   pull-requests:
     '**':
-      - stage:
-          name: Run Terraform Plan for environments
-          condition:
-            changesets:
-              includePaths:
-                - "qa/**"
-                - "stage/**"
-                - "prod/**"
+      - parallel:
           steps:
             - step:
-                name: Set Variables and OIDC
+                oidc: true
+                name: Plan QA
+                variables:
+                  TF_VAR_role_arn: $QA_ROLE_ARN
+                condition:
+                  changesets:
+                    includePaths:
+                      - "qa/**"
                 script:
-                  - mkdir web-identity && mkdir artifacts
-                  - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
-                  - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
-            - parallel:
-                steps:
-                  - step:
-                      oidc: true
-                      name: Plan QA
-                      variables:
-                        TF_VAR_role_arn: $QA_ROLE_ARN
-                      condition:
-                        changesets:
-                          includePaths:
-                            - "qa/**"
-                      script:
-                          - echo $TF_VAR_role_arn
-                          - ls -al
-                          - cd qa
-                          - terraform init
-                          - terraform validate
-                          - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-qa-tfplan
+                    - ./scripts/initialize-oidc.sh
+                    - echo $TF_VAR_role_arn
+                    - ls -al
+                    - cd qa
+                    - terraform init
+                    - terraform validate
+                    - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-qa-tfplan
 
-                  - step:
-                      oidc: true
-                      name: Plan Stage
-                      variables:
-                        TF_VAR_role_arn: $STAGE_ROLE_ARN
-                      condition:
-                        changesets:
-                          includePaths:
-                            - "stage/**"
-                      script:
-                          - echo $TF_VAR_role_arn
-                          - cd stage
-                          - terraform init
-                          - terraform validate
-                          - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-stage-tfplan
+            - step:
+                oidc: true
+                name: Plan Stage
+                variables:
+                  TF_VAR_role_arn: $STAGE_ROLE_ARN
+                condition:
+                  changesets:
+                    includePaths:
+                      - "stage/**"
+                script:
+                    - ./scripts/initialize-oidc.sh
+                    - echo $TF_VAR_role_arn
+                    - cd stage
+                    - terraform init
+                    - terraform validate
+                    - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-stage-tfplan
 
-                  - step:
-                      oidc: true
-                      name: Plan Prod
-                      variables:
-                        TF_VAR_role_arn: $PROD_ROLE_ARN
-                      condition:
-                        changesets:
-                          includePaths:
-                            - "prod/**"
-                      script:
-                        - echo $TF_VAR_role_arn
-                        - cd prod
-                        - terraform init
-                        - terraform validate
-                        - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-prod-tfplan
-            - parallel:
-                steps:
-                  - step:
-                      oidc: true
-                      name: Deploy QA artifact to S3
-                      condition:
-                        changesets:
-                          includePaths:
-                            - "qa/**"
-                      script:
-                        - pipe: atlassian/aws-s3-deploy:1.6.0
-                          variables:
-                            AWS_DEFAULT_REGION: $AWS_REGION
-                            AWS_OIDC_ROLE_ARN: $QA_ROLE_ARN
-                            S3_BUCKET: 'tower-test-tf-backend/tfplans'
-                            LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-qa-tfplan'
-                  - step:
-                      oidc: true
-                      name: Deploy Stage artifact to S3
-                      condition:
-                        changesets:
-                          includePaths:
-                            - "stage/**"
-                      script:
-                        - pipe: atlassian/aws-s3-deploy:1.6.0
-                          variables:
-                            AWS_DEFAULT_REGION: $AWS_REGION
-                            AWS_OIDC_ROLE_ARN: $STAGE_ROLE_ARN
-                            S3_BUCKET: 'tower-test-tf-backend/tfplans'
-                            LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-stage-tfplan'
-                  - step:
-                      oidc: true
-                      name: Deploy Prod artifact to S3
-                      condition:
-                        changesets:
-                          includePaths:
-                            - "prod/**"
-                      script:
-                        - pipe: atlassian/aws-s3-deploy:1.6.0
-                          variables:
-                            AWS_DEFAULT_REGION: $AWS_REGION
-                            AWS_OIDC_ROLE_ARN: $PROD_ROLE_ARN
-                            S3_BUCKET: 'tower-test-tf-backend/tfplans'
-                            LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-prod-tfplan'
+            - step:
+                oidc: true
+                name: Plan Prod
+                variables:
+                  TF_VAR_role_arn: $PROD_ROLE_ARN
+                condition:
+                  changesets:
+                    includePaths:
+                      - "prod/**"
+                script:
+                  - ./scripts/initialize-oidc.sh
+                  - echo $TF_VAR_role_arn
+                  - cd prod
+                  - terraform init
+                  - terraform validate
+                  - terraform plan -out=../artifacts/$BITBUCKET_COMMIT-prod-tfplan
+      - parallel:
+          steps:
+            - step:
+                oidc: true
+                name: Deploy QA artifact to S3
+                condition:
+                  changesets:
+                    includePaths:
+                      - "qa/**"
+                script:
+                  - pipe: atlassian/aws-s3-deploy:1.6.0
+                    variables:
+                      AWS_DEFAULT_REGION: $AWS_REGION
+                      AWS_OIDC_ROLE_ARN: $QA_ROLE_ARN
+                      S3_BUCKET: 'tower-test-tf-backend/tfplans'
+                      LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-qa-tfplan'
+            - step:
+                oidc: true
+                name: Deploy Stage artifact to S3
+                condition:
+                  changesets:
+                    includePaths:
+                      - "stage/**"
+                script:
+                  - pipe: atlassian/aws-s3-deploy:1.6.0
+                    variables:
+                      AWS_DEFAULT_REGION: $AWS_REGION
+                      AWS_OIDC_ROLE_ARN: $STAGE_ROLE_ARN
+                      S3_BUCKET: 'tower-test-tf-backend/tfplans'
+                      LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-stage-tfplan'
+            - step:
+                oidc: true
+                name: Deploy Prod artifact to S3
+                condition:
+                  changesets:
+                    includePaths:
+                      - "prod/**"
+                script:
+                  - pipe: atlassian/aws-s3-deploy:1.6.0
+                    variables:
+                      AWS_DEFAULT_REGION: $AWS_REGION
+                      AWS_OIDC_ROLE_ARN: $PROD_ROLE_ARN
+                      S3_BUCKET: 'tower-test-tf-backend/tfplans'
+                      LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-prod-tfplan'
 
   branches:
     master:
