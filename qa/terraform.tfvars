@@ -1,5 +1,5 @@
 aws_account = "ductus"
 region = "eu-north-1"
 env_name = "qa"
-team = "Null"
+team = "Nulll"
 web_identity_token_directory = "web-identity"

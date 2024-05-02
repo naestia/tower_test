@@ -66,6 +66,10 @@ pipelines:
             - step:
                 oidc: true
                 name: Deploy QA artifact to S3
+                condition:
+                  changesets:
+                    includePaths:
+                      - "./qa/**"
                 script:
                   - pipe: atlassian/aws-s3-deploy:1.6.0
                     variables:
@@ -76,6 +80,10 @@ pipelines:
             - step:
                 oidc: true
                 name: Deploy Stage artifact to S3
+                condition:
+                  changesets:
+                    includePaths:
+                      - "./stage/**"
                 script:
                   - pipe: atlassian/aws-s3-deploy:1.6.0
                     variables:
@@ -86,6 +94,10 @@ pipelines:
             - step:
                 oidc: true
                 name: Deploy Prod artifact to S3
+                condition:
+                  changesets:
+                    includePaths:
+                      - "./prod/**"
                 script:
                   - pipe: atlassian/aws-s3-deploy:1.6.0
                     variables:
