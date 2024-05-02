@@ -22,14 +22,14 @@ pipelines:
             - terraform init
             - terraform validate
             - terraform plan -out=artifacts/$BITBUCKET_COMMIT-tfplan
-          - pipe: atlassian/aws-s3-deploy:1.6.0
-            variables:
-              AWS_DEFAULT_REGION: $AWS_REGION
-              AWS_OIDC_ROLE_ARN: $QA_ROLE_ARN
-              S3_BUCKET: 'tower-test-tf-backend/tfplans'
-              LOCAL_PATH: 'artifacts'
-          artifacts:
-            - artifacts/*
+        - pipe: atlassian/aws-s3-deploy:1.6.0
+          variables:
+            AWS_DEFAULT_REGION: $AWS_REGION
+            AWS_OIDC_ROLE_ARN: $QA_ROLE_ARN
+            S3_BUCKET: 'tower-test-tf-backend/tfplans'
+            LOCAL_PATH: 'artifacts'
+        artifacts:
+          - artifacts/*
 
       - step:
         oidc: true
@@ -44,14 +44,14 @@ pipelines:
             - terraform init
             - terraform validate
             - terraform plan -out=artifacts/$BITBUCKET_COMMIT-tfplan
-          - pipe: atlassian/aws-s3-deploy:1.6.0
-            variables:
-              AWS_DEFAULT_REGION: $AWS_REGION
-              AWS_OIDC_ROLE_ARN: $STAGE_ROLE_ARN
-              S3_BUCKET: 'tower-test-tf-backend/tfplans'
-              LOCAL_PATH: 'artifacts'
-          artifacts:
-            - artifacts/*
+        - pipe: atlassian/aws-s3-deploy:1.6.0
+          variables:
+            AWS_DEFAULT_REGION: $AWS_REGION
+            AWS_OIDC_ROLE_ARN: $STAGE_ROLE_ARN
+            S3_BUCKET: 'tower-test-tf-backend/tfplans'
+            LOCAL_PATH: 'artifacts'
+        artifacts:
+          - artifacts/*
 
       - step:
           oidc: true
