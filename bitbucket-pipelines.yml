@@ -2,159 +2,21 @@ image: hashicorp/terraform
 
 pipelines:
   pull-requests:
-    - step:
-      name: Set Variables and OIDC
-      condition:
-        includePaths:
-          - "./qa/**"
-          - "./stage/**"
-          - "./prod/**"
-      script:
-        - mkdir web-identity && mkdir artifacts
-        - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
-        - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
-    - parallel:
-      steps:
-        - step:
-          oidc: true
-          name: Plan QA
-          variables:
-                TF_VAR_role_arn: $QA_ROLE_ARN
-          condition:
-            includePaths:
-              - "./qa/**"
-          script:
-              - echo $TF_VAR_role_arn
-              - terraform init
-              - terraform validate
-              - terraform plan -out=artifacts/$BITBUCKET_COMMIT-qa-tfplan
-              
-        - step:
-          oidc: true
-          name: Plan Stage
-          variables:
-                TF_VAR_role_arn: $STAGE_ROLE_ARN
-          condition:
-            includePaths:
-              - "./stage/**"
-          script:
-              - echo $TF_VAR_role_arn
-              - terraform init
-              - terraform validate
-              - terraform plan -out=artifacts/$BITBUCKET_COMMIT-stage-tfplan
-
-        - step:
-            oidc: true
-            name: Plan Prod
-            variables:
-                TF_VAR_role_arn: $PROD_ROLE_ARN
-            condition:
-              changeset:
-                includePaths:
-                  - "./prod/**"
-            script:
-              - echo $TF_VAR_role_arn
-              - terraform init
-              - terraform validate
-              - terraform plan -out=artifacts/$BITBUCKET_COMMIT-prod-tfplan
-            
-        # - step:
-        #     oidc: true
-        #     name: Deploy artifact to S3
-        #     script:
-        #       - pipe: atlassian/aws-s3-deploy:1.6.0
-        #         variables:
-        #           AWS_DEFAULT_REGION: $AWS_REGION
-        #           AWS_OIDC_ROLE_ARN: $AWS_ROLE_ARN
-        #           S3_BUCKET: 'tower-test-tf-backend/tfplans'
-        #           LOCAL_PATH: 'artifacts'
-    - parallel:
-      steps:
-        - step:
-          oidc: true
-          name: Deploy QA artifact to S3
-          script:
-            - pipe: atlassian/aws-s3-deploy:1.6.0
-              variables:
-                AWS_DEFAULT_REGION: $AWS_REGION
-                AWS_OIDC_ROLE_ARN: $QA_ROLE_ARN
-                S3_BUCKET: 'tower-test-tf-backend/tfplans'
-                LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-qa-tfplan'
-        - step:
-          oidc: true
-          name: Deploy Stage artifact to S3
-          script:
-            - pipe: atlassian/aws-s3-deploy:1.6.0
-              variables:
-                AWS_DEFAULT_REGION: $AWS_REGION
-                AWS_OIDC_ROLE_ARN: $STAGE_ROLE_ARN
-                S3_BUCKET: 'tower-test-tf-backend/tfplans'
-                LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-stage-tfplan'
-        - step:
-          oidc: true
-          name: Deploy Prod artifact to S3
-          script:
-            - pipe: atlassian/aws-s3-deploy:1.6.0
-              variables:
-                AWS_DEFAULT_REGION: $AWS_REGION
-                AWS_OIDC_ROLE_ARN: $PROD_ROLE_ARN
-                S3_BUCKET: 'tower-test-tf-backend/tfplans'
-                LOCAL_PATH: 'artifacts/$BITBUCKET_COMMIT-prod-tfplan'
-
-  branches:
-    master:
-        - step:
-            name: Security Scan
-            script:
-              # Run a security scan for sensitive data.
-              # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
-              - pipe: atlassian/git-secrets-scan:0.5.1        
-        - step:
-            oidc: true
-            name: Deploy to QA
-            variables:
-              TF_VAR_role_arn: $QA_ROLE_ARN
-            deployment: QA
-            trigger: manual
-            script:
-              - mkdir web-identity
-              - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
-              - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
-              - cd qa
-              - terraform init
-              - echo "TF APPLY"
-              # - terraform apply -auto-approve
-
-        - step:
-            oidc: true
-            name: Deploy to Stage
-            variables:
-              TF_VAR_role_arn: $STAGE_ROLE_ARN
-            deployment: Stage
-            trigger: manual
-            script:
-              - mkdir web-identity
-              - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
-              - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
-              - cd stage
-              - terraform init
-              - echo "TF APPLY"
-              # - terraform apply -auto-approve
-
-        - step:
-            oidc: true
-            name: Deploy to Production
-            variables:
-              TF_VAR_role_arn: $PROD_ROLE_ARN
-            deployment: Production
-            trigger: manual
-            script:
-              - mkdir web-identity
-              - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
-              - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
-              - cd prod
-              - terraform init
-              - echo "TF APPLY"
-              # - terraform apply -auto-approve
-
-
+    '**':
+      - parallel:
+          steps:
+            - step:
+                oidc: true
+                name: Plan QA
+                condition:
+                  changesets:
+                    includePaths:
+                      - "qa/**"
+                script:
+                  - cd qa
+                  - export AWS_ROLE_ARN=$QA_ROLE_ARN
+                  - mkdir web-identity && mkdir artifacts
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
+                  - terraform init
+                    
