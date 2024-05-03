@@ -8,13 +8,15 @@ pipelines:
             - step:
                 oidc: true
                 name: Plan QA
+                condition:
+                  changesets:
+                    includePaths:
+                      - "qa/**"
                 script:
                   - cd qa
-                  - export TF_LOG="DEBUG"
+                  - export AWS_ROLE_ARN=$QA_ROLE_ARN
                   - mkdir web-identity && mkdir artifacts
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
-                  - export AWS_ROLE_ARN=$QA_ROLE_ARN
-                  - ls -al
                   - terraform init
                     
