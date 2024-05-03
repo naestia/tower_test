@@ -16,7 +16,21 @@ pipelines:
                   - cd qa
                   - export AWS_ROLE_ARN=$QA_ROLE_ARN
                   - mkdir web-identity && mkdir artifacts
+                  - echo "Hello world" > artifacts/hello.txt
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
                   - terraform init
-                    
+                artifacts:
+                  - artifacts/*
+
+  branches:
+    main:
+      - stage: 
+          name: Apply Terraform configuration
+          steps:
+            - step:
+                name: Download artifacts
+                artifacts:
+                  download: true
+                script:
+                  - ls -al artifacts
