@@ -8,8 +8,6 @@ pipelines:
             - step:
                 oidc: true
                 name: Plan QA
-                variables:
-                  AWS_ROLE_ARN: $QA_ROLE_ARN
                 condition:
                   changesets:
                     includePaths:
@@ -17,10 +15,8 @@ pipelines:
                 script:
                   - mkdir ./web-identity && mkdir ./artifacts
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
-                  - export TF_VAR_role_arn=$QA_ROLE_ARN
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
-                  - echo $TF_VAR_role_arn
                   - ls -al
                   - cd qa
-                  - terraform init -var "role_arn=${AWS_ROLE_ARN}"
+                  - terraform init
                     
