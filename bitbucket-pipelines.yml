@@ -9,7 +9,7 @@ pipelines:
                 oidc: true
                 name: Plan QA
                 variables:
-                  TF_VAR_role_arn: $QA_ROLE_ARN
+                  AWS_ROLE_ARN: $QA_ROLE_ARN
                 condition:
                   changesets:
                     includePaths:
@@ -22,5 +22,5 @@ pipelines:
                   - echo $TF_VAR_role_arn
                   - ls -al
                   - cd qa
-                  - terraform init
+                  - terraform init -var "role_arn=${AWS_ROLE_ARN}"
                     
