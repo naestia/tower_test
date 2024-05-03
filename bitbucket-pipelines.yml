@@ -8,15 +8,13 @@ pipelines:
             - step:
                 oidc: true
                 name: Plan QA
-                variables:
-                  AWS_ROLE_ARN: "arn:aws:iam::533266958369:role/DeployCustomVPC"
                 script:
                   - cd qa
                   - export TF_LOG="DEBUG"
                   - mkdir web-identity && mkdir artifacts
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
-                  - echo $AWS_ROLE_ARN
+                  - export AWS_ROLE_ARN="arn:aws:iam::533266958369:role/DeployCustomVPC"
                   - ls -al
                   - terraform init
                     
