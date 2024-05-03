@@ -17,6 +17,7 @@ pipelines:
                 script:
                   - mkdir ./web-identity && mkdir ./artifacts
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
+                  - export TF_VAR_role_arn=$QA_ROLE_ARN
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
                   - ls -al
                   - cd qa
