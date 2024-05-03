@@ -9,7 +9,7 @@ pipelines:
                 oidc: true
                 name: Plan QA
                 variables:
-                  AWS_ROLE_ARN: $QA_ROLE_ARN
+                  AWS_ROLE_ARN: "arn:aws:iam::533266958369:role/DeployCustomVPC"
                 script:
                   - cd qa
                   - export TF_LOG="DEBUG"
