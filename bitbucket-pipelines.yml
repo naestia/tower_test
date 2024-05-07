@@ -131,7 +131,7 @@ pipelines:
             changesets:
               includePaths:
                 - "qa/**"
-          deployment: Test
+          deployment: QA
           trigger: manual
           steps:
             - step:
