@@ -146,47 +146,6 @@ pipelines:
                   - terraform init
                   - terraform apply -var "role_arn=$QA_ROLE_ARN"
       - stage:
-          name: Deploy to Stage
-          condition:
-            changesets:
-              includePaths:
-                - "stage/**"
-          deployment: Staging
-          trigger: manual
-          steps:
-            - step:
-                oidc: true
-                name: Terraform apply Stage
-                script:
-                  - cd stage
-                  - mkdir web-identity
-                  - export AWS_ROLE_ARN=$STAGE_ROLE_ARN
-                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
-                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
-                  - terraform init
-                  - terraform apply -var "role_arn=$STAGE_ROLE_ARN"
-
-      - stage:
-          name: Deploy to Prod
-          condition:
-            changesets:
-              includePaths:
-                - "prod/**"
-          deployment: Production
-          trigger: manual
-          steps:
-            - step:
-                oidc: true
-                name: Terraform apply Production
-                script:
-                  - cd prod
-                  - mkdir web-identity
-                  - export AWS_ROLE_ARN=$PROD_ROLE_ARN
-                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
-                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
-                  - terraform init
-                  - terraform apply -var "role_arn=$PROD_ROLE_ARN"
-      - stage:
           name: Rollback QA
           condition:
             changesets:
@@ -208,7 +167,26 @@ pipelines:
                   - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
                   - terraform init
                   - terraform apply -var "role_arn=$QA_ROLE_ARN" -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-qa-tf.tfstate
-
+      - stage:
+          name: Deploy to Stage
+          condition:
+            changesets:
+              includePaths:
+                - "stage/**"
+          deployment: Staging
+          trigger: manual
+          steps:
+            - step:
+                oidc: true
+                name: Terraform apply Stage
+                script:
+                  - cd stage
+                  - mkdir web-identity
+                  - export AWS_ROLE_ARN=$STAGE_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform init
+                  - terraform apply -var "role_arn=$STAGE_ROLE_ARN"
       - stage:
           name: Rollback Stage
           condition:
@@ -231,6 +209,30 @@ pipelines:
                   - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
                   - terraform init
                   - terraform apply -var "role_arn=$STAGE_ROLE_ARN" -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-stage-tf.tfstate
+
+      - stage:
+          name: Deploy to Prod
+          condition:
+            changesets:
+              includePaths:
+                - "prod/**"
+          deployment: Production
+          trigger: manual
+          steps:
+            - step:
+                oidc: true
+                name: Terraform apply Production
+                script:
+                  - cd prod
+                  - mkdir web-identity
+                  - export AWS_ROLE_ARN=$PROD_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform init
+                  - terraform apply -var "role_arn=$PROD_ROLE_ARN"
+
+
+
 
       - stage:
           name: Rollback Production
