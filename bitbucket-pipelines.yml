@@ -50,7 +50,7 @@ pipelines:
                   - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
 
                   - terraform init
-                  - terraform apply -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-tf.tfstate
+                  - terraform apply -var "role_arn=$QA_ROLE_ARN" -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-tf.tfstate
 
       - stage:
           name: Upload latest state artifact
