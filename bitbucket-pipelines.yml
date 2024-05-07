@@ -87,6 +87,7 @@ pipelines:
                   - export AWS_ROLE_ARN=$QA_ROLE_ARN
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform init
                   - terraform plan -var "role_arn=$QA_ROLE_ARN" -out=./artifacts/qa-tf.tfplan
                 artifacts:
                   - artifacts/qa-tf.tfplan
@@ -104,6 +105,7 @@ pipelines:
                   - export AWS_ROLE_ARN=$STAGE_ROLE_ARN
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform init
                   - terraform plan -var "role_arn=$STAGE_ROLE_ARN" -out=./artifacts/stage-tf.tfplan
                 artifacts:
                   - artifacts/stage-tf.tfplan
@@ -121,6 +123,7 @@ pipelines:
                   - export AWS_ROLE_ARN=$PROD_ROLE_ARN
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform init
                   - terraform plan -var "role_arn=$PROD_ROLE_ARN" -out=./artifacts/prod-tf.tfplan
                 artifacts:
                   - artifacts/prod-tf.tfplan
