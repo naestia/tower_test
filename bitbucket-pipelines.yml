@@ -20,17 +20,35 @@ pipelines:
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
                   - terraform init
+                  - terraform plan
                 artifacts:
                   - artifacts/*
 
   branches:
     main:
-      - stage: 
-          name: Apply Terraform configuration
+      - stage:
+          name: Rollback
           steps:
             - step:
-                name: Download artifacts
-                artifacts:
-                  download: true
+                oidc: true
+                name: Initialize Rollback
+                variables:
+                  - S3_BACKEND: "s3://tower-test-tf-backend/state-artifacts"
+                deployment: Rollback
+                trigger: manual
                 script:
-                  - ls -al artifacts
+                  - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
+                  - terraform apply -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-tf.tfstate
+
+      - stage: 
+          name: Upload latest state artifact
+          steps:
+            - step:
+                image: amazon/aws-cli
+                oidc: true
+                name: Upload artifact
+                script:
+                  - export AWS_ROLE_ARN=$QA_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity-token
+                  - aws s3 cp s3://tower-test-tf-backend/core/terraform.tfstate s3://tower-test-tf-backend/state-artifacts/$BITBUCKET_COMMIT-tf.tfstate

@@ -1,6 +1,8 @@
 .terraform
 .terraform.lock.hcl
 local-config-template
-
+*.idea/
 .pike
 *-template
+tmp
+*tfplan*
