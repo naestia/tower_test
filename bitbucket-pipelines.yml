@@ -34,7 +34,7 @@ pipelines:
                 name: Initialize Rollback
                 variables:
                   - S3_BACKEND: "s3://tower-test-tf-backend/state-artifacts"
-                deployment: Rollback
+                deployment: Production
                 trigger: manual
                 script:
                   - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
