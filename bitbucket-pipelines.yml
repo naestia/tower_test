@@ -43,6 +43,8 @@ pipelines:
                 script:
                   - export S3_BACKEND="s3://tower-test-tf-backend/state-artifacts"
                   - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
+                  - cd qa
+                  - terraform init
                   - terraform apply -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-tf.tfstate
 
       - stage:
