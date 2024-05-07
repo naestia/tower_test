@@ -4,14 +4,16 @@ import requests
 import json
 import os
 import datetime
+import sys
 from pathlib import Path
 
 token = os.environ["BITBUCKET_TOKEN"]
 workspace = os.environ["BITBUCKET_WORKSPACE"]
 repo_slug = os.environ["BITBUCKET_REPO_SLUG"]
 pull_request_id = os.environ["BITBUCKET_PR_ID"]
+read_file = sys.argv[1]
 
-with Path("./qa/tfplan.txt").open("r") as file:
+with Path(read_file).open("r") as file:
 
     comment = file.read()
 

@@ -23,4 +23,4 @@ response = requests.request(
 
 data = json.loads(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
 
-print(data['values'][1]['hash'])
+print(data['values'][0]['hash'])

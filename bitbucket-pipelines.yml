@@ -20,7 +20,46 @@ pipelines:
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
                   - terraform init
-                  - terraform plan
+                  - terraform validate
+                  - terraform plan -var "role_arn=$QA_ROLE_ARN"
+                artifacts:
+                  - artifacts/*
+
+            - step:
+                oidc: true
+                name: Plan Stage
+                condition:
+                  changesets:
+                    includePaths:
+                      - "stage/**"
+                script:
+                  - cd stage
+                  - export AWS_ROLE_ARN=$STAGE_ROLE_ARN
+                  - mkdir web-identity
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
+                  - terraform init
+                  - terraform validate
+                  - terraform plan -var "role_arn=$STAGE_ROLE_ARN"
+                artifacts:
+                  - artifacts/*
+
+            - step:
+                oidc: true
+                name: Plan Production
+                condition:
+                  changesets:
+                    includePaths:
+                      - "prod/**"
+                script:
+                  - cd prod
+                  - export AWS_ROLE_ARN=$PROD_ROLE_ARN
+                  - mkdir web-identity
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=./web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > ./web-identity/web-identity-token
+                  - terraform init
+                  - terraform validate
+                  - terraform plan -var "role_arn=$PROD_ROLE_ARN"
                 artifacts:
                   - artifacts/*
 
@@ -32,9 +71,128 @@ pipelines:
             # Run a security scan for sensitive data.
             # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
             - pipe: atlassian/git-secrets-scan:0.5.1
+
+      - parallel:
+          steps:
+            - step:
+                name: Terraform plan QA
+                condition:
+                  changesets:
+                    includePaths:
+                      - "qa/**"
+                oidc: true
+                script:
+                  - cd qa
+                  - mkdir web-identity && mkdir artifacts
+                  - export AWS_ROLE_ARN=$QA_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform plan -var "role_arn=$QA_ROLE_ARN" -out=./artifacts/qa-tf.tfplan
+                artifacts:
+                  - artifacts/qa-tf.tfplan
+
+            - step:
+                name: Terraform plan Stage
+                condition:
+                  changesets:
+                    includePaths:
+                      - "stage/**"
+                oidc: true
+                script:
+                  - cd stage
+                  - mkdir web-identity && mkdir artifacts
+                  - export AWS_ROLE_ARN=$STAGE_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform plan -var "role_arn=$STAGE_ROLE_ARN" -out=./artifacts/stage-tf.tfplan
+                artifacts:
+                  - artifacts/stage-tf.tfplan
+
+            - step:
+                name: Terraform plan Production
+                condition:
+                  changesets:
+                    includePaths:
+                      - "prod/**"
+                oidc: true
+                script:
+                  - cd prod
+                  - mkdir web-identity && mkdir artifacts
+                  - export AWS_ROLE_ARN=$PROD_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform plan -var "role_arn=$PROD_ROLE_ARN" -out=./artifacts/prod-tf.tfplan
+                artifacts:
+                  - artifacts/prod-tf.tfplan
+
       - stage:
-          name: Rollback
+          name: Deploy to QA
+          condition:
+            changesets:
+              includePaths:
+                - "qa/**"
+          deployment: QA
+          trigger: manual
+          steps:
+            - step:
+                oidc: true
+                name: Terraform apply QA
+                script:
+                  - cd qa
+                  - mkdir web-identity
+                  - export AWS_ROLE_ARN=$QA_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform init
+                  - terraform apply -var "role_arn=$QA_ROLE_ARN"
+      - stage:
+          name: Deploy to Stage
+          condition:
+            changesets:
+              includePaths:
+                - "stage/**"
+          deployment: Staging
+          trigger: manual
+          steps:
+            - step:
+                oidc: true
+                name: Terraform apply Stage
+                script:
+                  - cd stage
+                  - mkdir web-identity
+                  - export AWS_ROLE_ARN=$STAGE_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform init
+                  - terraform apply -var "role_arn=$STAGE_ROLE_ARN"
+
+      - stage:
+          name: Deploy to Prod
+          condition:
+            changesets:
+              includePaths:
+                - "prod/**"
           deployment: Production
+          trigger: manual
+          steps:
+            - step:
+                oidc: true
+                name: Terraform apply Production
+                script:
+                  - cd prod
+                  - mkdir web-identity
+                  - export AWS_ROLE_ARN=$PROD_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - terraform init
+                  - terraform apply -var "role_arn=$PROD_ROLE_ARN"
+      - stage:
+          name: Rollback QA
+          condition:
+            changesets:
+              includePaths:
+                - "qa/**"
+          deployment: QA
           trigger: manual
           steps:
             - step:
@@ -48,9 +206,54 @@ pipelines:
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
                   - export S3_BACKEND="s3://tower-test-tf-backend/state-artifacts"
                   - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
-
                   - terraform init
-                  - terraform apply -var "role_arn=$QA_ROLE_ARN" -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-tf.tfstate
+                  - terraform apply -var "role_arn=$QA_ROLE_ARN" -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-qa-tf.tfstate
+
+      - stage:
+          name: Rollback Stage
+          condition:
+            changesets:
+              includePaths:
+                - "stage/**"
+          deployment: Staging
+          trigger: manual
+          steps:
+            - step:
+                oidc: true
+                name: Initialize Rollback
+                script:
+                  - cd stage
+                  - mkdir web-identity
+                  - export AWS_ROLE_ARN=$STAGE_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - export S3_BACKEND="s3://tower-test-tf-backend/state-artifacts"
+                  - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
+                  - terraform init
+                  - terraform apply -var "role_arn=$STAGE_ROLE_ARN" -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-stage-tf.tfstate
+
+      - stage:
+          name: Rollback Production
+          condition:
+            changesets:
+              includePaths:
+                - "prod/**"
+          deployment: Production
+          trigger: manual
+          steps:
+            - step:
+                oidc: true
+                name: Initialize Rollback
+                script:
+                  - cd prod
+                  - mkdir web-identity
+                  - export AWS_ROLE_ARN=$PROD_ROLE_ARN
+                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
+                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
+                  - export S3_BACKEND="s3://tower-test-tf-backend/state-artifacts"
+                  - PREVIOUS_COMMIT_HASH=$(python3 scripts/test-commits.py | cut -c -7)
+                  - terraform init
+                  - terraform apply -var "role_arn=$PROD_ROLE_ARN" -state $S3_BACKEND/$PREVIOUS_COMMIT_HASH-prod-tf.tfstate
 
       - stage:
           name: Upload latest state artifact
@@ -60,7 +263,4 @@ pipelines:
                 oidc: true
                 name: Upload artifact
                 script:
-                  - export AWS_ROLE_ARN=$QA_ROLE_ARN
-                  - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity-token
-                  - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity-token
-                  - aws s3 cp s3://tower-test-tf-backend/core/terraform.tfstate s3://tower-test-tf-backend/state-artifacts/$BITBUCKET_COMMIT-tf.tfstate
+                  - echo "This will upload the latest artifact"
