@@ -18,11 +18,6 @@ variable "team" {
   type        = string
 }
 
-variable "role_arn" {
-  type = string
-  description = "OpenID Connect role ARN to use when deploying to AWS"
-}
-
 variable "web_identity_token_directory" {
   type = string
   description = "Directory to look for the web identity token file"
