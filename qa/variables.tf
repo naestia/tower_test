@@ -18,7 +18,7 @@ variable "team" {
   type        = string
 }
 
-variable "role_arn" {
+variable "aws_role_arn" {
   description = "AWS Deploy Role."
   type        = string
 }
