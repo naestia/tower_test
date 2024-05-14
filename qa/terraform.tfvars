@@ -1,5 +1,5 @@
 aws_account = "ductus"
 region = "eu-north-1"
 env_name = "qa"
+role_arn = "arn:aws:iam::533266958369:role/DeploySpacelift"
 team = "Null"
-web_identity_token_directory = "web-identity"
