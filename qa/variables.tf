@@ -18,7 +18,12 @@ variable "team" {
   type        = string
 }
 
-variable "aws_role_arn" {
+variable "role_arn" {
   description = "AWS Deploy Role."
   type        = string
+}
+
+variable "web_identity_token_directory" {
+  type = string
+  description = "Directory to look for the web identity token file"
 }

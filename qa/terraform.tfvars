@@ -1,5 +1,5 @@
 aws_account = "ductus"
 region = "eu-north-1"
 env_name = "qa"
-aws_role_arn = "arn:aws:iam::533266958369:role/DeploySpacelift"
+role_arn = "arn:aws:iam::533266958369:role/DeployCustomVPC"
 team = "Null"

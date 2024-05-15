@@ -16,7 +16,8 @@ terraform {
 provider "aws" {
   region  = "eu-north-1"
   assume_role_with_web_identity {
-    role_arn = var.aws_role_arn
-    web_identity_token_file = "/mnt/workspace/spacelift.oidc"
+    role_arn = var.role_arn
+    session_name = "Name"
+    web_identity_token_file = "./${var.web_identity_token_directory}/web-identity-token"
   }
 }
