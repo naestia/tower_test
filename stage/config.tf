@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
     region = "eu-north-1"
-    bucket = "tower-test-tf-backend"
+    bucket = "tower-stage-tf-backend"
     key    = "core/terraform.tfstate"
   }
 
