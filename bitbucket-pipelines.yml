@@ -144,7 +144,7 @@ pipelines:
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
                   - terraform init
-                  - terraform apply -var "role_arn=$QA_ROLE_ARN qa-tf.tfplan"
+                  - terraform apply -var "role_arn=$QA_ROLE_ARN qa-tf.tfplan -auto-approve"
       - stage:
           name: Deploy to Stage
           condition:
@@ -168,7 +168,7 @@ pipelines:
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
                   - terraform init
-                  - terraform apply -var "role_arn=$STAGE_ROLE_ARN stage-tf.tfplan"
+                  - terraform apply -var "role_arn=$STAGE_ROLE_ARN stage-tf.tfplan -auto-approve"
 
       - stage:
           name: Deploy to Prod
@@ -193,7 +193,7 @@ pipelines:
                   - export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity/web-identity-token
                   - echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity/web-identity-token
                   - terraform init
-                  - terraform apply -var "role_arn=$PROD_ROLE_ARN prod-tf.tfplan"
+                  - terraform apply -var "role_arn=$PROD_ROLE_ARN prod-tf.tfplan -auto-approve"
 
       - stage:
           name: Upload latest state artifact

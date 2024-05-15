@@ -13,11 +13,6 @@ variable "env_name" {
   description = "Environment name for account"
 }
 
-variable "team" {
-  description = "Team that owns this work."
-  type        = string
-}
-
 variable "role_arn" {
   type = string
   description = "OpenID Connect role ARN to use when deploying to AWS"

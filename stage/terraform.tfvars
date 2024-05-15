@@ -1,6 +1,5 @@
 aws_account = "ductus"
 region = "eu-north-1"
 env_name = "stage"
-team = "Nulll"
 role_arn = "arn:aws:iam::533266958369:role/DeployCustomVPC"
 web_identity_token_directory = "web-identity"
