@@ -51,7 +51,7 @@ jobs:
             fi
         }
         jwtd $IDTOKEN
-        echo "idToken=${IDTOKEN}"
+        echo $IDTOKEN >> web-identity-token
       id: tokenid
 
     - name: List
