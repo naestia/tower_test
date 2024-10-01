@@ -54,6 +54,9 @@ jobs:
         echo "idToken=${IDTOKEN}" >> $GITHUB_OUTPUT
       id: tokenid
 
+    - name: List
+      run: ls -al
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
