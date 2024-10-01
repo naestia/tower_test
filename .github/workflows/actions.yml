@@ -22,7 +22,9 @@ jobs:
     name: Set up terraform and aWS
     runs-on: ubuntu-latest
     steps:
-
+    - name: Git clone the repository
+      uses: actions/checkout@v3
+      
     - uses: actions/github-script@v6
       id: script
       timeout-minutes: 10
@@ -47,8 +49,7 @@ jobs:
         echo "idToken=${IDTOKEN}" >> ./web-identity/web-identity-token
       id: tokenid
 
-    - name: Git clone the repository
-      uses: actions/checkout@v3
+
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
