@@ -12,8 +12,3 @@ variable "env_name" {
   type        = string
   description = "Environment name for account"
 }
-
-variable "role_arn" {
-  description = "AWS Deploy Role."
-  type        = string
-}
