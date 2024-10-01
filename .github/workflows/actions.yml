@@ -9,9 +9,7 @@ env:
   AWS_REGION: eu-west-1
   ROLE_SESSION_NAME: Github_AWS
 
-permissions:
-      id-token: write   # This is required for requesting the JWT
-      contents: read    # This is required for actions/checkout
+
 on:
   push:
     branches:
@@ -21,24 +19,28 @@ jobs:
   deploy:
     name: Set up terraform and aWS
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
     steps:
     - name: Git clone the repository
       uses: actions/checkout@v3
+    
+    # - uses: actions/setup-node@v3
+    #   with:
+    #     node-version: '14'
       
-    - name: Install OIDC Client from Core Package
-      run: npm install @actions/core@1.6.0 @actions/http-client
+    # - name: Install OIDC Client from Core Package
+    #   run: npm install @actions/core@1.6.0 @actions/http-client
 
-    - name: Get Id Token
-      uses: actions/github-script@v6
-      id: idtoken
-      with:
-        script: |
-          const coredemo = require('@actions/core')
-          let id_token = await coredemo.getIDToken()
-          coredemo.setOutput('id_token', id_token)
-
-    - name: List
-      run: ls -al
+    # - name: Get Id Token
+    #   uses: actions/github-script@v6
+    #   id: idtoken
+    #   with:
+    #     script: |
+    #       const coredemo = require('@actions/core')
+    #       let id_token = await coredemo.getIDToken()
+    #       coredemo.setOutput('id_token', id_token)
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
