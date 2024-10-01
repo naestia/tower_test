@@ -15,7 +15,7 @@
 
 provider "aws" {
   region  = "eu-north-1"
-  assume_role_with_web_identity {
+  assume_role {
     role_arn = var.role_arn
     session_name = "Name"
   }
