@@ -46,7 +46,7 @@ jobs:
             fi
         }
         jwtd $IDTOKEN
-        echo "idToken=${IDTOKEN}" >> ./web-identity-token
+        echo "idToken=${IDTOKEN}" >> TF_VAR_web_identity_jwt
       id: tokenid
 
 
