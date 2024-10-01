@@ -18,6 +18,10 @@ variable "role_arn" {
   type        = string
 }
 
+variable "web_identity_jwt" {
+  type = map()
+}
+
 variable "web_identity_token_directory" {
   type = string
   description = "Directory to look for the web identity token file"
