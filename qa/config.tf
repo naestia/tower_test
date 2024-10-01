@@ -15,8 +15,9 @@
 
 provider "aws" {
   region  = "eu-north-1"
-  assume_role {
+  assume_role_with_web_identity {
     role_arn = var.role_arn
     session_name = "Name"
+    web_identity_token_file = ./web-identity-token
   }
 }
