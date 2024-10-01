@@ -51,9 +51,7 @@ jobs:
       id: validate
       run: terraform validate -no-color
 
-    - name: Terraform Plan
-      env:
-        TF_VAR_role_arn: ${{ secrets.ROLE_TO_ASSUME }}
+    - name: Terraform Apply
       id: plan
-      run: terraform plan
+      run: terraform apply -auto-approve
       
