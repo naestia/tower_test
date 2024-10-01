@@ -29,6 +29,12 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: '14'
+        
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+        aws-region: ${{ env.AWS_REGION }}
       
     - uses: actions/github-script@v6
       id: script
@@ -57,11 +63,7 @@ jobs:
     - name: List
       run: ls -al
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
-        aws-region: ${{ env.AWS_REGION }}
+
     
     - name: Configure Terraform
       uses: hashicorp/setup-terraform@v3
