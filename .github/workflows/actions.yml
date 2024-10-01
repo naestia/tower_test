@@ -1,0 +1,57 @@
+name: testing workflow
+
+defaults:
+  run:
+    working-directory: ./qa
+
+env:
+  TERRAFORM_VERSION: 1.9.6
+  AWS_REGION: eu-west-1
+  ROLE_TO_ASSUME: secrets.ROLE_TO_ASSUME
+  ROLE_SESSION_NAME: Github_AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Set up terraform and aWS
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Get OIDC Token
+      id: get_oidc_token
+      run: |
+        curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"
+        "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r
+        '.value' > ./web-identity/web-identity-token
+    
+    - name: Configure Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
+
+    - name: Terraform Init
+      id: init
+      run: terraform init
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan
+      
