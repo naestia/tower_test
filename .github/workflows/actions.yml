@@ -2,7 +2,7 @@ name: testing workflow
 
 defaults:
   run:
-    working-directory: ./qa
+    working-directory: qa
 
 env:
   TERRAFORM_VERSION: 1.9.6
