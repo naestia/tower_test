@@ -10,6 +10,9 @@ env:
   ROLE_TO_ASSUME: secrets.ROLE_TO_ASSUME
   ROLE_SESSION_NAME: Github_AWS
 
+permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
 on:
   push:
     branches:
@@ -20,6 +23,9 @@ jobs:
     name: Set up terraform and aWS
     runs-on: ubuntu-latest
     steps:
+    - name: Git clone the repository
+      uses: actions/checkout@v3
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
