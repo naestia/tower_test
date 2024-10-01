@@ -31,13 +31,6 @@ jobs:
       with:
         role-to-assume: arn:aws:iam::533266958369:role/GithubAssumeRole
         aws-region: ${{ env.AWS_REGION }}
-
-    - name: Get OIDC Token
-      id: get_oidc_token
-      run: |
-        curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"
-        "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r
-        '.value' > ./web-identity/web-identity-token
     
     - name: Configure Terraform
       uses: hashicorp/setup-terraform@v3
