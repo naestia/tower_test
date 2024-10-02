@@ -27,13 +27,16 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set Role Name
+      if: endswith(github.ref, 'main')
       run: |
-        if [[ "${{github.ref}}" == "refs/head/main" ]]; then
-          export ROLE_TO_ASSUME="MASTER ROLE"
-          echo "HELLO WORLD"
-        fi
-
-        echo $ROLE_TO_ASSUME
+        export ROLE_TO_ASSUME="MASTER ROLE"
+        echo "HELLO WORLD"
+    
+    - name: Set Role name test
+      if: endswith(github.ref, 'test')
+      run: |
+        export ROLE_TO_ASSUME="TEST ROLE"
+        echo "HELLO TEST WORLD"
     
     
         
