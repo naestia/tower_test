@@ -12,3 +12,7 @@ variable "env_name" {
   type        = string
   description = "Environment name for account"
 }
+
+variable "bucket" {
+  type = string
+}

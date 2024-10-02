@@ -8,7 +8,7 @@ env:
   TERRAFORM_VERSION: 1.9.6
   AWS_REGION: eu-west-1
   ROLE_SESSION_NAME: Github_AWS
-
+  ROLE_TO_ASSUME: ${{secrets.ROLE_TO_ASSUME}}
 
 on:
   push:
@@ -23,35 +23,43 @@ jobs:
       id-token: write   # This is required for requesting the JWT
       contents: read    # This is required for actions/checkout
     steps:
-    - name: Git clone the repository
-      uses: actions/checkout@v3
+    - name: Set Role Name
+      run: |
+        if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/head/main" ]]; then
+          export ROLE_TO_ASSUME="MASTER ROLE"
+        fi
+
+        echo $ROLE_TO_ASSUME
+    
+    # - name: Git clone the repository
+    #   uses: actions/checkout@v3
         
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
-        aws-region: ${{ env.AWS_REGION }}
+    # - name: Configure AWS Credentials
+    #   uses: aws-actions/configure-aws-credentials@v2
+    #   with:
+    #     role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+    #     aws-region: ${{ env.AWS_REGION }}
 
-    - name: Configure Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TERRAFORM_VERSION }}
-        terraform_wrapper: false
+    # - name: Configure Terraform
+    #   uses: hashicorp/setup-terraform@v3
+    #   with:
+    #     terraform_version: ${{ env.TERRAFORM_VERSION }}
+    #     terraform_wrapper: false
 
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
+    # - name: Terraform fmt
+    #   id: fmt
+    #   run: terraform fmt -check
+    #   continue-on-error: true
 
-    - name: Terraform Init
-      id: init
-      run: terraform init
+    # - name: Terraform Init
+    #   id: init
+    #   run: terraform init
 
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
+    # - name: Terraform Validate
+    #   id: validate
+    #   run: terraform validate -no-color
 
-    - name: Terraform Apply
-      id: plan
-      run: terraform apply -auto-approve
+    # - name: Terraform Apply
+    #   id: plan
+    #   run: terraform apply -auto-approve
       
