@@ -23,6 +23,9 @@ jobs:
       id-token: write   # This is required for requesting the JWT
       contents: read    # This is required for actions/checkout
     steps:
+    - name: Git clone the repository
+      uses: actions/checkout@v3
+
     - name: Set Role Name
       run: |
         if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/head/main" ]]; then
@@ -31,8 +34,7 @@ jobs:
 
         echo $ROLE_TO_ASSUME
     
-    # - name: Git clone the repository
-    #   uses: actions/checkout@v3
+    
         
     # - name: Configure AWS Credentials
     #   uses: aws-actions/configure-aws-credentials@v2
