@@ -1,57 +1,22 @@
-name: testing workflow
 
-defaults:
-  run:
-    working-directory: qa
-
-env:
-  TERRAFORM_VERSION: 1.9.6
-  AWS_REGION: eu-west-1
-  ROLE_SESSION_NAME: Github_AWS
-
-
-on:
-  push:
-    branches:
-      - main
+on: workflow_dispatch
 
 jobs:
-  deploy:
-    name: Set up terraform and aWS
-    runs-on: ubuntu-latest
+  oidc_debug_test:
     permissions:
-      id-token: write   # This is required for requesting the JWT
-      contents: read    # This is required for actions/checkout
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    name: A test of the oidc debugger
     steps:
-    - name: Git clone the repository
-      uses: actions/checkout@v3
-        
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
-        aws-region: ${{ env.AWS_REGION }}
-
-    - name: Configure Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TERRAFORM_VERSION }}
-        terraform_wrapper: false
-
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-
-    - name: Terraform Init
-      id: init
-      run: terraform init
-
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
-
-    - name: Terraform Apply
-      id: plan
-      run: terraform apply -auto-approve
-      
+      - name: Checkout actions-oidc-debugger
+        uses: actions/checkout@v3
+        with:
+          repository: github/actions-oidc-debugger
+          ref: main
+          token: ${{ secrets.your-checkout-token }}
+          path: ./.github/actions/actions-oidc-debugger
+      - name: Debug OIDC Claims
+        uses: ./.github/actions/actions-oidc-debugger
+        with:
+          audience: '${{ github.server_url }}/${{ github.repository_owner }}'
