@@ -30,6 +30,7 @@ jobs:
       run: |
         if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/head/main" ]]; then
           export ROLE_TO_ASSUME="MASTER ROLE"
+          echo "HELLO WORLD"
         fi
 
         echo $ROLE_TO_ASSUME
