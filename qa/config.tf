@@ -23,7 +23,7 @@ resource "aws_kms_key" "mykey" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "encryption" {
-    bucket = aws_s3_bucket.selected.id
+    bucket = data.aws_s3_bucket.selected.id
 
     rule {
         apply_server_side_encryption_by_default {
