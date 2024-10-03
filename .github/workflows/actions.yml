@@ -16,8 +16,47 @@ on:
       - test
 
 jobs:
+  check-if-bucket-exists:
+    name: Check if Backend S3 bucket exists
+    runs-on: ubuntu-latest
+    outputs:
+      bucket_exists: ${{ steps.exists.outputs.bucket_exists }}
+    steps:
+    - name: Set Role Name
+      if: endswith(github.ref, 'main')
+      run: |
+        echo "S3_BUCKET=tower-prod-tf-backend" >> $GITHUB_ENV
+        echo "ROLE_TO_ASSUME=${{secrets.PROD_ROLE}}" >> $GITHUB_ENV
+    
+    - name: Set Role name test
+      if: endswith(github.ref, 'test')
+      run: |
+        echo "S3_BUCKET=tower-qa-tf-backend" >> $GITHUB_ENV
+        echo "ROLE_TO_ASSUME=${{secrets.TEST_ROLE}}" >> $GITHUB_ENV
+        
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Check s3 for backend bucket
+      id: exists
+      run: |
+        bucketstatus=$(aws s3api head-bucket --bucket ${{env.S3_BUCKET}} 2>&1)
+        
+        if echo "${bucketstatus}" | grep 'Not Found'; then
+          echo "::set-output name=bucket_exists::false"
+        else
+          echo "You're a specific genius. Now do something useful";
+          echo "::set-output name=bucket_exists::true"
+        fi
+
+
   deploy:
     name: Set up terraform and aWS
+    needs: check-if-bucket-exists
+    if: ${{ needs.check-if-bucket-exists.outputs.bucket_exists == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write   # This is required for requesting the JWT
