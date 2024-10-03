@@ -16,8 +16,52 @@ on:
       - test
 
 jobs:
+  check-if-bucket-exists:
+    name: Check if Backend S3 bucket exists
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    outputs:
+      bucket_exists: ${{ steps.exists.outputs.bucket_exists }}
+    steps:
+    - name: Git clone the repository
+      uses: actions/checkout@v3
+
+    - name: Set Role Name
+      if: endswith(github.ref, 'main')
+      run: |
+        echo "S3_BUCKET=tower-prod-tf-backend" >> $GITHUB_ENV
+        echo "ROLE_TO_ASSUME=${{secrets.PROD_ROLE}}" >> $GITHUB_ENV
+    
+    - name: Set Role name test
+      if: endswith(github.ref, 'test')
+      run: |
+        echo "S3_BUCKET=tower-qa-tf-backend" >> $GITHUB_ENV
+        echo "ROLE_TO_ASSUME=${{secrets.TEST_ROLE}}" >> $GITHUB_ENV
+        
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Check s3 for backend bucket
+      id: exists
+      run: |
+        bucketstatus=$(aws s3api head-bucket --bucket ${{env.S3_BUCKET}} 2>&1)
+        
+        if echo "${bucketstatus}" | grep 'Not Found'; then
+          echo "bucket_exists=false" >> $GITHUB_OUTPUT
+        else
+          echo "bucket_exists=true" >> $GITHUB_OUTPUT
+        fi
+
+
   deploy:
     name: Set up terraform and aWS
+    needs: check-if-bucket-exists
+    if: ${{ needs.check-if-bucket-exists.outputs.bucket_exists == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write   # This is required for requesting the JWT
@@ -29,19 +73,21 @@ jobs:
     - name: Set Role Name
       if: endswith(github.ref, 'main')
       run: |
-        echo "TERRAFORM_BACKEND_CONFIG=./backend/prod-backend.tfbackend" >> $GITHUB_ENV
+        echo "STAGE=prod" >> $GITHUB_ENV
+        echo "TERRAFORM_BACKEND_CONFIG=../backend/prod-backend.tfbackend" >> $GITHUB_ENV
         echo "ROLE_TO_ASSUME=${{secrets.PROD_ROLE}}" >> $GITHUB_ENV
     
     - name: Set Role name test
       if: endswith(github.ref, 'test')
       run: |
-        echo "TERRAFORM_BACKEND_CONFIG=./backend/test-backend.tfbackend" >> $GITHUB_ENV
+        echo "STAGE=test" >> $GITHUB_ENV
+        echo "TERRAFORM_BACKEND_CONFIG=../backend/test-backend.tfbackend" >> $GITHUB_ENV
         echo "ROLE_TO_ASSUME=${{secrets.TEST_ROLE}}" >> $GITHUB_ENV
         
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+        role-to-assume: ${{ env.ROLE_TO_ASSUME }}
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Configure Terraform
@@ -50,22 +96,20 @@ jobs:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
         terraform_wrapper: false
 
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-
     - name: Terraform Init
       id: init
+      working-directory: qa/${{env.STAGE}}
       run: |
         echo "Running ${{env.TERRAFORM_BACKEND_CONFIG}} as backend Config."
         terraform init -backend-config=${{env.TERRAFORM_BACKEND_CONFIG}}
 
     - name: Terraform Validate
       id: validate
+      working-directory: qa/${{env.STAGE}}
       run: terraform validate -no-color
 
     - name: Terraform Apply
       id: plan
+      working-directory: qa/${{env.STAGE}}
       run: terraform apply -auto-approve
       
