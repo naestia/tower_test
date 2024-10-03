@@ -29,13 +29,15 @@ jobs:
     - name: Set Role Name
       if: endswith(github.ref, 'main')
       run: |
-        echo "TERRAFORM_BACKEND_CONFIG=./backend/prod-backend.tfbackend" >> $GITHUB_ENV
+        echo "STAGE=prod" >> $GITHUB_ENV
+        echo "TERRAFORM_BACKEND_CONFIG=../backend/prod-backend.tfbackend" >> $GITHUB_ENV
         echo "ROLE_TO_ASSUME=${{secrets.PROD_ROLE}}" >> $GITHUB_ENV
     
     - name: Set Role name test
       if: endswith(github.ref, 'test')
       run: |
-        echo "TERRAFORM_BACKEND_CONFIG=./backend/test-backend.tfbackend" >> $GITHUB_ENV
+        echo "STAGE=test" >> $GITHUB_ENV
+        echo "TERRAFORM_BACKEND_CONFIG=../backend/test-backend.tfbackend" >> $GITHUB_ENV
         echo "ROLE_TO_ASSUME=${{secrets.TEST_ROLE}}" >> $GITHUB_ENV
         
     - name: Configure AWS Credentials
@@ -50,22 +52,20 @@ jobs:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
         terraform_wrapper: false
 
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-
     - name: Terraform Init
       id: init
+      working-directory: ${{env.STAGE}}
       run: |
         echo "Running ${{env.TERRAFORM_BACKEND_CONFIG}} as backend Config."
         terraform init -backend-config=${{env.TERRAFORM_BACKEND_CONFIG}}
 
     - name: Terraform Validate
       id: validate
+      working-directory: ${{env.STAGE}}
       run: terraform validate -no-color
 
     - name: Terraform Apply
       id: plan
+      working-directory: ${{env.STAGE}}
       run: terraform apply -auto-approve
       
