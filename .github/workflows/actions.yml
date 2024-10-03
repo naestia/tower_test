@@ -8,12 +8,12 @@ env:
   TERRAFORM_VERSION: 1.9.6
   AWS_REGION: eu-west-1
   ROLE_SESSION_NAME: Github_AWS
-  ROLE_TO_ASSUME: ${{secrets.ROLE_TO_ASSUME}}
 
 on:
   push:
     branches:
       - main
+      - test
 
 jobs:
   deploy:
@@ -29,43 +29,43 @@ jobs:
     - name: Set Role Name
       if: endswith(github.ref, 'main')
       run: |
-        export ROLE_TO_ASSUME="MASTER ROLE"
-        echo "HELLO WORLD"
+        echo "TERRAFORM_BACKEND_CONFIG=./backend/prod-backend.tfbackend" >> $GITHUB_ENV
+        echo "ROLE_TO_ASSUME=${{secrets.PROD_ROLE}}" >> $GITHUB_ENV
     
     - name: Set Role name test
       if: endswith(github.ref, 'test')
       run: |
-        export ROLE_TO_ASSUME="TEST ROLE"
-        echo "HELLO TEST WORLD"
-    
-    
+        echo "TERRAFORM_BACKEND_CONFIG=./backend/test-backend.tfbackend" >> $GITHUB_ENV
+        echo "ROLE_TO_ASSUME=${{secrets.TEST_ROLE}}" >> $GITHUB_ENV
         
-    # - name: Configure AWS Credentials
-    #   uses: aws-actions/configure-aws-credentials@v2
-    #   with:
-    #     role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
-    #     aws-region: ${{ env.AWS_REGION }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+        aws-region: ${{ env.AWS_REGION }}
 
-    # - name: Configure Terraform
-    #   uses: hashicorp/setup-terraform@v3
-    #   with:
-    #     terraform_version: ${{ env.TERRAFORM_VERSION }}
-    #     terraform_wrapper: false
+    - name: Configure Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+        terraform_wrapper: false
 
-    # - name: Terraform fmt
-    #   id: fmt
-    #   run: terraform fmt -check
-    #   continue-on-error: true
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
 
-    # - name: Terraform Init
-    #   id: init
-    #   run: terraform init
+    - name: Terraform Init
+      id: init
+      run: |
+        echo "Running ${{env.TERRAFORM_BACKEND_CONFIG}} as backend Config."
+        terraform init -backend-config=${{env.TERRAFORM_BACKEND_CONFIG}}
 
-    # - name: Terraform Validate
-    #   id: validate
-    #   run: terraform validate -no-color
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
 
-    # - name: Terraform Apply
-    #   id: plan
-    #   run: terraform apply -auto-approve
+    - name: Terraform Apply
+      id: plan
+      run: terraform apply -auto-approve
       
