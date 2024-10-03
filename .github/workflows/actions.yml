@@ -19,8 +19,11 @@ jobs:
   check-if-bucket-exists:
     name: Check if Backend S3 bucket exists
     runs-on: ubuntu-latest
-    # outputs:
-    #   bucket_exists: ${{ steps.exists.outputs.bucket_exists }}
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    outputs:
+      bucket_exists: ${{ steps.exists.outputs.bucket_exists }}
     steps:
     - name: Git clone the repository
       uses: actions/checkout@v3
