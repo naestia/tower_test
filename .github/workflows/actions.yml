@@ -28,19 +28,15 @@ jobs:
 
     - name: Set Role Name
       if: endswith(github.ref, 'main')
-      env:
-        TERRAFORM_BACKEND_CONFIG: "./backend/prod-backend.tfbackend"
-        ROLE_TO_ASSUME: ${{secrets.PROD_ROLE}}
       run: |
-        echo "Prod"
+        echo "TERRAFORM_BACKEND_CONFIG=./backend/prod-backend.tfbackend" >> $GITHUB_ENV
+        echo "ROLE_TO_ASSUME=${{secrets.PROD_ROLE}}" >> $GITHUB_ENV
     
     - name: Set Role name test
       if: endswith(github.ref, 'test')
-      env:
-        TERRAFORM_BACKEND_CONFIG: "./backend/prod-backend.tfbackend"
-        ROLE_TO_ASSUME: ${{secrets.TEST_ROLE}}
       run: |
-        echo "Test"
+        echo "TERRAFORM_BACKEND_CONFIG=./backend/test-backend.tfbackend" >> $GITHUB_ENV
+        echo "ROLE_TO_ASSUME=${{secrets.TEST_ROLE}}" >> $GITHUB_ENV
         
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
