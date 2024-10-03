@@ -24,7 +24,7 @@ jobs:
     steps:
     - name: Git clone the repository
       uses: actions/checkout@v3
-      
+
     - name: Set Role Name
       if: endswith(github.ref, 'main')
       run: |
@@ -40,7 +40,7 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+        role-to-assume: ${{ env.ROLE_TO_ASSUME }}
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Check s3 for backend bucket
@@ -85,7 +85,7 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+        role-to-assume: ${{ env.ROLE_TO_ASSUME }}
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Configure Terraform
