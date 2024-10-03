@@ -54,18 +54,18 @@ jobs:
 
     - name: Terraform Init
       id: init
-      working-directory: ${{env.STAGE}}
+      working-directory: qa/${{env.STAGE}}
       run: |
         echo "Running ${{env.TERRAFORM_BACKEND_CONFIG}} as backend Config."
         terraform init -backend-config=${{env.TERRAFORM_BACKEND_CONFIG}}
 
     - name: Terraform Validate
       id: validate
-      working-directory: ${{env.STAGE}}
+      working-directory: qa/${{env.STAGE}}
       run: terraform validate -no-color
 
     - name: Terraform Apply
       id: plan
-      working-directory: ${{env.STAGE}}
+      working-directory: qa/${{env.STAGE}}
       run: terraform apply -auto-approve
       
