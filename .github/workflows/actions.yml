@@ -52,10 +52,9 @@ jobs:
         bucketstatus=$(aws s3api head-bucket --bucket ${{env.S3_BUCKET}} 2>&1)
         
         if echo "${bucketstatus}" | grep 'Not Found'; then
-          echo "::set-output name=bucket_exists::false"
+          echo "bucket_exists=false" >> $GITHUB_OUTPUT
         else
-          echo "You're a specific genius. Now do something useful";
-          echo "::set-output name=bucket_exists::true"
+          echo "bucket_exists=true" >> $GITHUB_OUTPUT
         fi
 
 
