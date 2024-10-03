@@ -22,6 +22,9 @@ jobs:
     outputs:
       bucket_exists: ${{ steps.exists.outputs.bucket_exists }}
     steps:
+    - name: Git clone the repository
+      uses: actions/checkout@v3
+      
     - name: Set Role Name
       if: endswith(github.ref, 'main')
       run: |
